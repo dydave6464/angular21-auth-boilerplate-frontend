@@ -4,7 +4,7 @@
 
 export const environment = {
     production: false,
-    apiUrl: 'https://angular21-auth-boilerplate-backend.onrender.com'
+    apiUrl: 'https://angular21-auth-boilerplate-backend-production.up.railway.app'
 };
 
 /*
