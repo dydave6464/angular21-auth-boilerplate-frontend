@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
 
@@ -25,6 +26,7 @@ export class ResetPasswordComponent implements OnInit {
         private formBuilder: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
+        private location: Location,
         private accountService: AccountService,
         private alertService: AlertService
     ) { }
@@ -39,8 +41,15 @@ export class ResetPasswordComponent implements OnInit {
 
         const token = this.route.snapshot.queryParams['token'];
 
+        if (!token) {
+            this.tokenStatus = TokenStatus.Invalid;
+            return;
+        }
+
         // remove token from url to prevent http referer leakage
-        this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
+        // use Location.replaceState so we don't trigger a route reuse that would
+        // destroy this component and re-run ngOnInit with no token in the query params
+        this.location.replaceState(this.router.url.split('?')[0]);
 
         this.accountService.validateResetToken(token)
             .pipe(first())
@@ -49,7 +58,8 @@ export class ResetPasswordComponent implements OnInit {
                     this.token = token;
                     this.tokenStatus = TokenStatus.Valid;
                 },
-                error: () => {
+                error: error => {
+                    console.error('validateResetToken failed:', error);
                     this.tokenStatus = TokenStatus.Invalid;
                 }
             });
